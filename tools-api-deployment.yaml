@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: tools-api
 spec:
-  replicas: 2 # You can adjust the number of replicas based on your needs
+  replicas: 1 # You can adjust the number of replicas based on your needs
   selector:
     matchLabels:
       app: tools-api
