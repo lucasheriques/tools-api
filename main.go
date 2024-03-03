@@ -23,37 +23,35 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, world!!!!")
 }
 
-// Assuming Gotenberg is accessible at 'http://gotenberg:3000' from within the cluster
-const gotenbergURL = "http://gotenberg:3000/forms/chromium/convert/html"
-
 func convertHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		log.Println("Method not allowed")
 		return
 	}
 
-	// Read the HTML content from the request body
 	htmlContent, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read HTML content", http.StatusInternalServerError)
+		log.Printf("Failed to read HTML content: %v", err)
 		return
 	}
 	defer r.Body.Close()
 
-	pdfFile, err := convert.ConvertHtmlStringToPdf(htmlContent)
+	log.Println("Converting HTML to PDF...")
+	pdfContent, err := convert.ConvertHtmlStringToPdf(htmlContent)
 	if err != nil {
 		http.Error(w, "Failed to convert HTML to PDF", http.StatusInternalServerError)
+		log.Printf("Error converting HTML to PDF: %v", err)
 		return
 	}
 
-	// Copy the Gotenberg response (PDF file) to the client
 	w.Header().Set("Content-Type", "application/pdf")
-	if _, err := io.Copy(w, bytes.NewReader(pdfFile)); err != nil {
+	if _, err := io.Copy(w, bytes.NewReader(pdfContent)); err != nil {
+		log.Printf("Error sending PDF content to client: %v", err)
 		http.Error(w, "Failed to send PDF content to client", http.StatusInternalServerError)
 		return
 	}
 
-	// Log the request
-	log.Printf("Converted HTML to PDF")
-
+	log.Println("Successfully converted HTML to PDF and sent to client")
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -13,66 +14,60 @@ import (
 const gotenbergURL = "http://gotenberg:3000/forms/chromium/convert/html"
 
 func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
-	// Create a temporary directory
 	tempDir, err := os.MkdirTemp("", "gotenberg")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create a temporary directory: %w", err)
+		return nil, fmt.Errorf("failed to create a temporary directory: %v", err)
 	}
-	defer os.RemoveAll(tempDir) // Clean up the directory afterwards
+	defer os.RemoveAll(tempDir)
 
-	// Create an index.html file inside the temporary directory
 	tempFilePath := filepath.Join(tempDir, "index.html")
-	err = os.WriteFile(tempFilePath, []byte(htmlContent), 0644)
+	err = os.WriteFile(tempFilePath, htmlContent, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("failed to write HTML content to index.html: %w", err)
+		return nil, fmt.Errorf("failed to write HTML content to index.html: %v", err)
 	}
 
-	// Create a new multipart writer
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
-	// Add the index.html file to the multipart writer
 	fw, err := w.CreateFormFile("files[index.html]", "index.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create form file: %w", err)
+		return nil, fmt.Errorf("failed to create form file: %v", err)
 	}
 	htmlFile, err := os.Open(tempFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open index.html file: %w", err)
+		return nil, fmt.Errorf("failed to open index.html file: %v", err)
 	}
 	defer htmlFile.Close()
-	_, err = io.Copy(fw, htmlFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to copy index.html file to form file: %w", err)
-	}
 
-	// Close the multipart writer
+	if _, err = io.Copy(fw, htmlFile); err != nil {
+		return nil, fmt.Errorf("failed to copy index.html file to form file: %v", err)
+	}
 	w.Close()
 
-	// Create a new HTTP request
 	req, err := http.NewRequest("POST", gotenbergURL, &b)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new HTTP request: %w", err)
+		return nil, fmt.Errorf("failed to create new HTTP request: %v", err)
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
-	// Send the HTTP request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send HTTP request: %w", err)
+		return nil, fmt.Errorf("failed to send HTTP request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http request responded with not ok: %s", resp.Status)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("Gotenberg responded with %d: %s", resp.StatusCode, string(bodyBytes))
+		return nil, fmt.Errorf("Gotenberg responded with status code %d", resp.StatusCode)
 	}
 
-	// Read the response body
 	pdfContent, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
+	log.Println("HTML content successfully converted to PDF")
 	return pdfContent, nil
 }
