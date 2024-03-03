@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-const gotenbergURL = "http://gotenberg:3000/forms/chromium/convert/html"
+const gotenbergURL = "http://gotenberg.default.svc.cluster.local:3000/forms/chromium/convert/html"
 
 func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
 	tempDir, err := os.MkdirTemp("", "gotenberg")
