@@ -17,6 +17,8 @@ import (
 
 type GenerateInvoiceOptions struct {
 	PaymentMethod string
+	VendorName    string
+	AccountNumber string
 }
 
 type CompanyInfo struct {
@@ -57,31 +59,26 @@ func generateAccountNumber() string {
 	return fmt.Sprintf("%d", min+rand.Int63n(max-min))
 }
 
-// Create a map of payment methods. Each payment method will map out to InvoicePaymentDetails. We should support ACH, Domestic Wire and Check payments.
-var paymentMethods = map[string][]InvoicePaymentDetails{
-	"ach": {
-		{Name: "Routing number", Value: "026001591"},
-		{Name: "Account number", Value: generateAccountNumber()},
-		{Name: "Beneficiary name", Value: "TechWave Solutions"},
-	},
-	"wire": {
-		{Name: "Bank name", Value: "Wells Fargo"},
-		{Name: "Routing number", Value: "121000248"},
-		{Name: "Account number", Value: generateAccountNumber()},
-		{Name: "Beneficiary name", Value: "TechWave Solutions"},
-	},
-	"check": {
-		{Name: "Payable to", Value: "TechWave Solutions"},
-		{Name: "Address", Value: "1234 Main St, San Francisco, CA 94111"},
-	},
+func generatePaymentMethods(companyName, accountNumber, address string) map[string][]InvoicePaymentDetails {
+	return map[string][]InvoicePaymentDetails{
+		"ach": {
+			{Name: "Routing number", Value: "026001591"},
+			{Name: "Account number", Value: accountNumber},
+			{Name: "Beneficiary name", Value: companyName},
+		},
+		"wire": {
+			{Name: "Bank name", Value: "Wells Fargo"},
+			{Name: "Routing number", Value: "121000248"},
+			{Name: "Account number", Value: accountNumber},
+			{Name: "Beneficiary name", Value: companyName},
+		},
+		"check": {
+			{Name: "Payable to", Value: companyName},
+			{Name: "Address", Value: address},
+		},
+	}
 }
 
-// Create a function to generate an array of InvoiceItems. It should also return the total amount of the invoice.
-// Use the faker library to generate random items and prices.
-// The total amount should be the sum of all the items.
-// The price should be a string with the format "$X.XX".
-// The total should also be a string with the format "$X.XX".
-// The function should return an array of InvoiceItems and the total amount as a string.
 func generateInvoiceItems() ([]InvoiceItem, string) {
 	fake := faker.New()
 	items := []InvoiceItem{}
@@ -100,13 +97,24 @@ func generateInvoiceItems() ([]InvoiceItem, string) {
 
 func generateData(options GenerateInvoiceOptions) InvoiceData {
 	fake := faker.New()
-	companyName := fake.Company().Name()
+	vendorName := options.VendorName
+	if vendorName == "" {
+		vendorName = fake.Company().Name()
+	}
 	now := time.Now()
-	companyAddress := fake.Address()
+	vendorAddress := fake.Address()
 
-	companyStreetAddress := companyAddress.StreetName() + " " + companyAddress.StreetSuffix() + ", " + strconv.Itoa(fake.RandomNumber(3))
+	vendorStreetAddress := vendorAddress.StreetName() + " " + vendorAddress.StreetSuffix() + ", " + strconv.Itoa(fake.RandomNumber(3))
+	vendorCityStateZip := vendorAddress.City() + ", " + vendorAddress.StateAbbr() + " " + strings.Split(vendorAddress.PostCode(), "-")[0]
+	vendorFullAddress := vendorStreetAddress + ", " + vendorCityStateZip
+	vendorEmail := "bills@" + utils.TransformIntoValidEmailName(vendorName) + "." + fake.Internet().Domain()
 
-	companyEmail := "bills@" + utils.TransformIntoValidEmailName(companyName) + "." + fake.Internet().Domain()
+	accountNumber := options.AccountNumber
+	if accountNumber == "" {
+		accountNumber = generateAccountNumber()
+	}
+
+	paymentMethods := generatePaymentMethods(vendorName, accountNumber, vendorFullAddress)
 
 	paymentDetails, ok := paymentMethods[options.PaymentMethod]
 	if !ok {
@@ -126,10 +134,10 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 		// Due date should be 30 days from today
 		DueDate: now.AddDate(0, 0, 30).Format("January 2, 2006"),
 		VendorInfo: CompanyInfo{
-			Name:          companyName,
-			StreetAddress: companyStreetAddress,
-			CityStateZip:  companyAddress.City() + ", " + companyAddress.State(),
-			Email:         companyEmail,
+			Name:          vendorName,
+			StreetAddress: vendorStreetAddress,
+			CityStateZip:  vendorCityStateZip,
+			Email:         vendorEmail,
 		},
 		CustomerInfo: CompanyInfo{
 			Name:          "Acme Corp.",

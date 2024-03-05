@@ -25,9 +25,13 @@ func main() {
 func invoiceHandler(w http.ResponseWriter, r *http.Request) {
 	// Read query parameters
 	paymentMethod := r.FormValue("paymentMethod")
+	vendorName := r.FormValue("vendorName")
+	accountNumber := r.FormValue("accountNumber")
 
 	htmlContent, err := invoices.GenerateHtmlFile(invoices.GenerateInvoiceOptions{
 		PaymentMethod: paymentMethod,
+		VendorName:    vendorName,
+		AccountNumber: accountNumber,
 	})
 
 	if err != nil {
