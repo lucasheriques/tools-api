@@ -25,9 +25,6 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
-# Important: Copy the template directory and its contents to the final image
-COPY --from=builder /app/templates /root/templates
-
 # Also copy invoice.tmpl to the final image
 COPY --from=builder /app/invoice.tmpl /root/invoice.tmpl
 

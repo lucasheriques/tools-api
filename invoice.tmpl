@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>A simple, clean, and responsive HTML invoice template</title>
+    <title>{{.VendorInfo.Name}} - {{.InvoiceNumber}}</title>
     <style>
         .invoice-box {
             max-width: 800px;
@@ -106,7 +106,7 @@
                     <table>
                         <tr>
                             <td class="title">
-                                <img src="{{.CompanyLogo}}" style="width:100%; max-width:300px;">
+                                <img src="{{.CompanyLogo}}" style="width:100%; max-width:150px;">
                             </td>
                             <td>
                                 Invoice #: {{.InvoiceNumber}}<br>
@@ -123,10 +123,16 @@
                     <table>
                         <tr>
                             <td>
-                                {{.VendorInfo}}
+                                {{.VendorInfo.Name}}<br>
+                                {{.VendorInfo.StreetAddress}}<br>
+                                {{.VendorInfo.CityStateZip}}<br>
+                                {{.VendorInfo.Email}}
                             </td>
                             <td>
-                                {{.CustomerInfo}}
+                                {{.CustomerInfo.Name}}<br>
+                                {{.CustomerInfo.StreetAddress}}<br>
+                                {{.CustomerInfo.CityStateZip}}<br>
+                                {{.CustomerInfo.Email}}
                             </td>
                         </tr>
                     </table>
