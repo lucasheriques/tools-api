@@ -1,0 +1,179 @@
+package invoices
+
+import (
+	"fmt"
+	"html"
+	"html/template"
+	"log"
+	"math/rand"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+	"tools-api/utils"
+
+	"github.com/jaswdr/faker/v2"
+)
+
+type GenerateInvoiceOptions struct {
+	PaymentMethod string
+}
+
+type CompanyInfo struct {
+	Name          string
+	StreetAddress string
+	CityStateZip  string
+	Email         string
+}
+
+type InvoiceData struct {
+	CompanyLogo    string
+	InvoiceNumber  string
+	InvoiceDate    string
+	DueDate        string
+	VendorInfo     CompanyInfo
+	CustomerInfo   CompanyInfo
+	PaymentMethod  string
+	PaymentDetails []InvoicePaymentDetails
+	Items          []InvoiceItem
+	Total          string
+}
+
+type InvoiceItem struct {
+	Description string
+	Price       string
+}
+
+type InvoicePaymentDetails struct {
+	Name  string
+	Value string
+}
+
+const tmplFile = "invoice.tmpl"
+
+func generateAccountNumber() string {
+	min := int64(1e8)  // The smallest 9 digit number
+	max := int64(1e12) // The smallest 13 digit number
+	return fmt.Sprintf("%d", min+rand.Int63n(max-min))
+}
+
+// Create a map of payment methods. Each payment method will map out to InvoicePaymentDetails. We should support ACH, Domestic Wire and Check payments.
+var paymentMethods = map[string][]InvoicePaymentDetails{
+	"ach": {
+		{Name: "Routing number", Value: "026001591"},
+		{Name: "Account number", Value: generateAccountNumber()},
+		{Name: "Beneficiary name", Value: "TechWave Solutions"},
+	},
+	"wire": {
+		{Name: "Bank name", Value: "Wells Fargo"},
+		{Name: "Routing number", Value: "121000248"},
+		{Name: "Account number", Value: generateAccountNumber()},
+		{Name: "Beneficiary name", Value: "TechWave Solutions"},
+	},
+	"check": {
+		{Name: "Payable to", Value: "TechWave Solutions"},
+		{Name: "Address", Value: "1234 Main St, San Francisco, CA 94111"},
+	},
+}
+
+// Create a function to generate an array of InvoiceItems. It should also return the total amount of the invoice.
+// Use the faker library to generate random items and prices.
+// The total amount should be the sum of all the items.
+// The price should be a string with the format "$X.XX".
+// The total should also be a string with the format "$X.XX".
+// The function should return an array of InvoiceItems and the total amount as a string.
+func generateInvoiceItems() ([]InvoiceItem, string) {
+	fake := faker.New()
+	items := []InvoiceItem{}
+	total := 0.0
+	// random number between 1 and 8
+	for i := 0; i < rand.Intn(8)+1; i++ {
+		price := fake.Float64(2, 100, 1000)
+		total += price
+		items = append(items, InvoiceItem{
+			Description: strings.Title(fake.Company().BS()),
+			Price:       fmt.Sprintf("$%.2f", price),
+		})
+	}
+	return items, fmt.Sprintf("$%.2f", total)
+}
+
+func generateData(options GenerateInvoiceOptions) InvoiceData {
+	fake := faker.New()
+	companyName := fake.Company().Name()
+	now := time.Now()
+	companyAddress := fake.Address()
+
+	companyStreetAddress := companyAddress.StreetName() + " " + companyAddress.StreetSuffix() + ", " + strconv.Itoa(fake.RandomNumber(3))
+
+	companyEmail := "bills@" + utils.TransformIntoValidEmailName(companyName) + "." + fake.Internet().Domain()
+
+	paymentDetails, ok := paymentMethods[options.PaymentMethod]
+	if !ok {
+		paymentDetails = paymentMethods["ach"] // Default to ACH or handle the error.
+	}
+
+	log.Printf("Generating invoice of payment method %s", options.PaymentMethod)
+
+	invoiceItems, total := generateInvoiceItems()
+
+	data := InvoiceData{
+		CompanyLogo: "https://cataas.com/cat",
+		// convert from int to string
+		InvoiceNumber: strconv.Itoa(fake.RandomNumber(5)),
+		// Invoice date should be today's date
+		InvoiceDate: now.Format("January 2, 2006"),
+		// Due date should be 30 days from today
+		DueDate: now.AddDate(0, 0, 30).Format("January 2, 2006"),
+		VendorInfo: CompanyInfo{
+			Name:          companyName,
+			StreetAddress: companyStreetAddress,
+			CityStateZip:  companyAddress.City() + ", " + companyAddress.State(),
+			Email:         companyEmail,
+		},
+		CustomerInfo: CompanyInfo{
+			Name:          "Acme Corp.",
+			StreetAddress: "1234 Main St",
+			CityStateZip:  "San Francisco, CA 94111",
+			Email:         "john@acme.com",
+		},
+		PaymentMethod:  strings.ToTitle(options.PaymentMethod),
+		PaymentDetails: paymentDetails,
+		Items:          invoiceItems,
+		Total:          total,
+	}
+
+	return data
+}
+
+func GenerateHtmlFile(options GenerateInvoiceOptions) ([]byte, error) {
+	invoiceData := generateData(options)
+
+	templ, err := template.New(tmplFile).Funcs(template.FuncMap{
+		"nl2br": func(text string) template.HTML {
+			return template.HTML(strings.Replace(html.EscapeString(text), "\n", "<br>", -1))
+		},
+	}).ParseFiles(tmplFile)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing template template: %v", err)
+	}
+
+	tmpFile, err := os.CreateTemp("", "invoice-*.html")
+	if err != nil {
+		return nil, fmt.Errorf("error creating index.html file: %v", err)
+	}
+	defer tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
+
+	err = templ.Execute(tmpFile, invoiceData)
+	if err != nil {
+		return nil, fmt.Errorf("error executing template: %v", err)
+	}
+
+	htmlContent, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		return nil, fmt.Errorf("error reading HTML file: %v", err)
+	}
+
+	return htmlContent, nil
+}
