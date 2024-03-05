@@ -18,7 +18,6 @@ func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a temporary directory: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
 
 	tempFilePath := filepath.Join(tempDir, "index.html")
 	err = os.WriteFile(tempFilePath, htmlContent, 0644)
@@ -60,7 +59,7 @@ func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		log.Printf("Gotenberg responded with %d: %s", resp.StatusCode, string(bodyBytes))
-		return nil, fmt.Errorf("Gotenberg responded with status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("gotenberg responded with status code %d", resp.StatusCode)
 	}
 
 	pdfContent, err := io.ReadAll(resp.Body)

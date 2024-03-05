@@ -1,11 +1,8 @@
 # Start from the official Golang base image
-FROM golang:1.21.7 as builder
+FROM golang:1.22 as builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
-
-# log the files in the previous folder in the tree
-RUN ls -la
 
 # Copy go mod and sum files
 COPY ./go.mod ./go.sum ./
@@ -27,6 +24,12 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+
+# Important: Copy the template directory and its contents to the final image
+COPY --from=builder /app/templates /root/templates
+
+# Also copy invoice.tmpl to the final image
+COPY --from=builder /app/invoice.tmpl /root/invoice.tmpl
 
 # Command to run the executable
 CMD ["./main"]
