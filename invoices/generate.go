@@ -10,7 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"tools-api/utils"
+
+	"tools.lucasfaria.dev/utils"
 
 	"github.com/jaswdr/faker/v2"
 )

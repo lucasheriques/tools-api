@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tools-api
+  name: tools-lucasfaria-dev
 spec:
   replicas: 1 # You can adjust the number of replicas based on your needs
   selector:
     matchLabels:
-      app: tools-api
+      app: tools-lucasfaria-dev
   template:
     metadata:
       labels:
-        app: tools-api
+        app: tools-lucasfaria-dev
     spec:
       containers:
-        - name: tools-api
-          image: tools-api:latest
+        - name: tools-lucasfaria-dev
+          image: tools-lucasfaria-dev:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

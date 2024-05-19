@@ -6,8 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"tools-api/convert"
-	"tools-api/invoices"
+
+	"tools.lucasfaria.dev/convert"
+	"tools.lucasfaria.dev/invoices"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 	mux.HandleFunc("GET /api/fake-invoice", invoiceHandler)
 	mux.HandleFunc("POST /api/convert/html", convertHTMLHandler)
 
-	fmt.Println("Starting tools-api server at port 8080")
+	fmt.Println("Starting tools.lucasfaria.dev server at port 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)
 	}
