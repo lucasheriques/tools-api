@@ -14,7 +14,7 @@ RUN go mod download
 COPY .. .
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+RUN CGO_ENABLED=0 GOOS=linux make build/api
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -23,10 +23,10 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/main .
+COPY --from=builder /app/bin/api /root/api
 
 # Also copy invoice.tmpl to the final image
 COPY --from=builder /app/invoice.tmpl /root/invoice.tmpl
 
 # Command to run the executable
-CMD ["./main"]
+CMD ["./api"]

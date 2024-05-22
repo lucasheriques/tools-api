@@ -11,9 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"tools.lucasfaria.dev/utils"
-
 	"github.com/jaswdr/faker/v2"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"tools.lucasfaria.dev/internal/utils"
 )
 
 type GenerateInvoiceOptions struct {
@@ -89,7 +90,7 @@ func generateInvoiceItems() ([]InvoiceItem, string) {
 		price := fake.Float64(2, 100, 1000)
 		total += price
 		items = append(items, InvoiceItem{
-			Description: strings.Title(fake.Company().BS()),
+			Description: cases.Title(language.English).String(fake.Company().BS()),
 			Price:       fmt.Sprintf("$%.2f", price),
 		})
 	}

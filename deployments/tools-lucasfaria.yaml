@@ -17,4 +17,4 @@ spec:
           image: tools-lucasfaria-dev:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 4000
