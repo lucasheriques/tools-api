@@ -1,3 +1,9 @@
+## variables
+GCP_PROJECT_ID = lucasfaria-tools-api
+DOCKER_IMAGE_NAME = tools-lucasfaria-dev
+GCP_ARTIFACT_REPO = my-repo
+
+
 ## help: print this help message
 help:
 	@echo 'Usage:'
@@ -33,3 +39,16 @@ audit:
 	staticcheck ./...
 	@echo 'Running tests...'
 	go test -race -vet=off ./...
+
+
+## docker/build: builds the docker container image
+.PHONY: docker/build
+docker/build:
+	@echo 'Building docker image...'
+	docker build -t ${DOCKER_IMAGE_NAME}:latest --file ./deployments/Dockerfile .
+
+.PHONY: docker/push-to-gcp
+docker/push-to-gcp:
+	@echo 'Pushing docker image to GCP...'
+	docker tag ${DOCKER_IMAGE_NAME}:latest us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/${DOCKER_IMAGE_NAME}:latest
+	docker push us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/${DOCKER_IMAGE_NAME}:latest
