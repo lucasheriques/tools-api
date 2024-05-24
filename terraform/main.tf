@@ -5,7 +5,7 @@ provider "google" {
 }
 
 resource "google_container_cluster" "autopilot" {
-  name     = "my-autopilot-cluster"
+  name     = "lucasfaria-tools-cluster"
   location = "us-central1"
 
   enable_autopilot = true
