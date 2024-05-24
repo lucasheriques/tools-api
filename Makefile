@@ -1,9 +1,3 @@
-## variables
-GCP_PROJECT_ID = lucasfaria-tools-api
-DOCKER_IMAGE_NAME = tools-lucasfaria-dev
-GCP_ARTIFACT_REPO = my-repo
-
-
 ## help: print this help message
 help:
 	@echo 'Usage:'
@@ -41,6 +35,11 @@ audit:
 	go test -race -vet=off ./...
 
 
+## variables
+GCP_PROJECT_ID = lucasfaria-tools-api
+DOCKER_IMAGE_NAME = tools-lucasfaria-dev
+GCP_ARTIFACT_REPO = my-repo
+
 ## docker/build: builds the docker container image
 .PHONY: docker/build
 docker/build:
@@ -52,3 +51,10 @@ docker/push-to-gcp:
 	@echo 'Pushing docker image to GCP...'
 	docker tag ${DOCKER_IMAGE_NAME}:latest us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/${DOCKER_IMAGE_NAME}:latest
 	docker push us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/${DOCKER_IMAGE_NAME}:latest
+
+.PHONY: terraform
+terraform:
+	@echo 'Running terraform...'
+	terraform init
+	terraform plan
+	terraform apply

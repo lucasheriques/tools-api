@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
-const gotenbergURL = "http://gotenberg.default.svc.cluster.local:3000/forms/chromium/convert/html"
+const gotenbergURL = "http://gotenberg.default.svc.cluster.local:80/forms/chromium/convert/html"
 
 func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
 	tempDir, err := os.MkdirTemp("", "gotenberg")
@@ -58,8 +57,7 @@ func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		log.Printf("Gotenberg responded with %d: %s", resp.StatusCode, string(bodyBytes))
-		return nil, fmt.Errorf("gotenberg responded with status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("gotenberg responded with status code %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	pdfContent, err := io.ReadAll(resp.Body)
@@ -67,6 +65,5 @@ func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
-	log.Println("HTML content successfully converted to PDF")
 	return pdfContent, nil
 }

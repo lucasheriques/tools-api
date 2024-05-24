@@ -5,16 +5,16 @@ FROM golang:1.22 as builder
 WORKDIR /app
 
 # Copy go mod and sum files
-COPY ./go.mod ./go.sum ./
+COPY go.mod go.sum ./
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
 # Copy the source from the current directory to the Working Directory inside the container
-COPY .. .
+COPY . .
 
-# Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux make build/api
+# Build the Go app with explicit environment variables
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/api ./cmd/api
 
 # Start a new stage from scratch
 FROM alpine:latest
