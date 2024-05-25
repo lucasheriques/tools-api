@@ -4,6 +4,21 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.autopilot_cluster.master_auth.0.cluster_ca_certificate)
 }
 
+resource "kubernetes_manifest" "managed_certificate" {
+  manifest = {
+    "apiVersion" = "networking.gke.io/v1beta1"
+    "kind"       = "ManagedCertificate"
+    "metadata" = {
+      "name"      = "example-ssl-cert"
+      "namespace" = "default"
+    }
+    "spec" = {
+      "domains" = ["tools.lucasfaria.dev"]
+    }
+  }
+}
+
+
 resource "kubernetes_deployment" "go_rest_api" {
   metadata {
     name      = "go-rest-api"

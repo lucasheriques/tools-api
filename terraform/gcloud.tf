@@ -30,7 +30,8 @@ resource "google_compute_global_address" "default" {
 
 resource "kubernetes_ingress_v1" "go_rest_api_ingress" {
   metadata {
-    name = "go-rest-api-ingress"
+    name      = "go-rest-api-ingress"
+    namespace = "default"
     annotations = {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
       "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.managed_cert.name
@@ -63,6 +64,10 @@ resource "kubernetes_ingress_v1" "go_rest_api_ingress" {
           }
         }
       }
+    }
+
+    tls {
+      hosts = ["tools.lucasfaria.dev"]
     }
   }
 
