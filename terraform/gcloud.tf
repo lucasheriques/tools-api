@@ -28,7 +28,7 @@ resource "google_compute_global_address" "default" {
   name = "my-global-address"
 }
 
-resource "kubernetes_ingress" "go_rest_api_ingress" {
+resource "kubernetes_ingress_v1" "go_rest_api_ingress" {
   metadata {
     name = "go-rest-api-ingress"
     annotations = {
@@ -38,14 +38,28 @@ resource "kubernetes_ingress" "go_rest_api_ingress" {
   }
 
   spec {
+    default_backend {
+      service {
+        name = kubernetes_service.go_rest_api.metadata[0].name
+        port {
+          number = kubernetes_service.go_rest_api.spec[0].port[0].port
+        }
+      }
+    }
+
     rule {
       host = "tools.lucasfaria.dev"
       http {
         path {
-          path = "/*"
+          path      = "/"
+          path_type = "Prefix"
           backend {
-            service_name = kubernetes_service.go_rest_api.metadata[0].name
-            service_port = kubernetes_service.go_rest_api.spec[0].port[0].port
+            service {
+              name = kubernetes_service.go_rest_api.metadata[0].name
+              port {
+                number = kubernetes_service.go_rest_api.spec[0].port[0].port
+              }
+            }
           }
         }
       }

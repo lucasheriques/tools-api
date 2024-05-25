@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.3.2"
-    }
-  }
-}
-
 provider "kubernetes" {
   host                   = "https://${data.google_container_cluster.autopilot_cluster.endpoint}"
   token                  = data.google_client_config.default.access_token
@@ -105,7 +96,7 @@ resource "kubernetes_service" "go_rest_api" {
       target_port = 4000
     }
 
-    type = "ClusterIP"
+    type = "LoadBalancer"
   }
 }
 
