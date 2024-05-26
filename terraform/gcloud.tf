@@ -17,13 +17,6 @@ data "google_container_cluster" "autopilot_cluster" {
   location = google_container_cluster.autopilot.location
 }
 
-resource "google_compute_managed_ssl_certificate" "managed_cert" {
-  name = "example-ssl-cert"
-  managed {
-    domains = ["tools.lucasfaria.dev"]
-  }
-}
-
 resource "google_compute_global_address" "default" {
   name = "my-global-address"
 }
@@ -33,8 +26,8 @@ resource "kubernetes_ingress_v1" "go_rest_api_ingress" {
     name      = "go-rest-api-ingress"
     namespace = "default"
     annotations = {
+      "kubernetes.io/ingress.class" : "gce"
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
-      "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.managed_cert.name
     }
   }
 
@@ -65,13 +58,12 @@ resource "kubernetes_ingress_v1" "go_rest_api_ingress" {
         }
       }
     }
-
-    tls {
-      hosts = ["tools.lucasfaria.dev"]
-    }
   }
 
-  depends_on = [kubernetes_service.go_rest_api, helm_release.nginx_ingress]
+  depends_on = [
+    kubernetes_service.go_rest_api,
+    google_compute_global_address.default,
+  ]
 }
 
 output "kubeconfig" {

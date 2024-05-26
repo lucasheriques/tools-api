@@ -4,21 +4,6 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.autopilot_cluster.master_auth.0.cluster_ca_certificate)
 }
 
-resource "kubernetes_manifest" "managed_certificate" {
-  manifest = {
-    "apiVersion" = "networking.gke.io/v1beta1"
-    "kind"       = "ManagedCertificate"
-    "metadata" = {
-      "name"      = "example-ssl-cert"
-      "namespace" = "default"
-    }
-    "spec" = {
-      "domains" = ["tools.lucasfaria.dev"]
-    }
-  }
-}
-
-
 resource "kubernetes_deployment" "go_rest_api" {
   metadata {
     name      = "go-rest-api"
@@ -47,6 +32,23 @@ resource "kubernetes_deployment" "go_rest_api" {
           image = "us-central1-docker.pkg.dev/lucasfaria-tools-api/my-repo/tools-lucasfaria-dev:latest"
           port {
             container_port = 4000
+          }
+
+          readiness_probe {
+            http_get {
+              path = "/v1/healthcheck"
+              port = 4000
+            }
+            initial_delay_seconds = 5
+            period_seconds        = 10
+          }
+          liveness_probe {
+            http_get {
+              path = "/v1/healthcheck"
+              port = 4000
+            }
+            initial_delay_seconds = 15
+            period_seconds        = 20
           }
         }
       }
@@ -104,14 +106,12 @@ resource "kubernetes_service" "go_rest_api" {
       app = kubernetes_deployment.go_rest_api.spec[0].template[0].metadata[0].labels["app"]
     }
 
-    session_affinity = "ClientIP"
-
     port {
       port        = 80
       target_port = 4000
     }
 
-    type = "LoadBalancer"
+    type = "NodePort"
   }
 }
 

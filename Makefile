@@ -46,8 +46,10 @@ docker/build:
 	@echo 'Building docker image...'
 	docker build -t ${DOCKER_IMAGE_NAME}:latest --file ./deployments/Dockerfile .
 
-.PHONY: docker/push-to-gcp
-docker/push-to-gcp:
+.PHONY: docker/build-and-push
+docker/build-and-push:
+	@echo 'Building docker image...'
+	docker build -t ${DOCKER_IMAGE_NAME}:latest --file ./deployments/Dockerfile .
 	@echo 'Pushing docker image to GCP...'
 	docker tag ${DOCKER_IMAGE_NAME}:latest us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/${DOCKER_IMAGE_NAME}:latest
 	docker push us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/${DOCKER_IMAGE_NAME}:latest
