@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 
 	"tools.lucasfaria.dev/internal/convert"
 	"tools.lucasfaria.dev/internal/invoices"
+	"tools.lucasfaria.dev/internal/validator"
 )
 
 func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request) {
@@ -15,6 +17,18 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	paymentMethod := app.readString(qs, "paymentMethod", "ach")
 	vendorName := app.readString(qs, "vendorName", "Acme Corp.")
 	accountNumber := app.readString(qs, "accountNumber", invoices.GenerateAccountNumber())
+
+	v := validator.New()
+
+	v.Check(validator.PermittedValue(paymentMethod, "ach", "check", "wire"), "paymentMethod", "Invalid payment method. Options: 'ach', 'check', 'wire'")
+	v.Check(validator.Matches(accountNumber, regexp.MustCompile("^[0-9]+$")), "accountNumber", "Invalid account number. Must be only digits.")
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// check if string only has numbers
 
 	htmlContent, err := invoices.GenerateHtmlFile(invoices.GenerateInvoiceOptions{
 		PaymentMethod: paymentMethod,
