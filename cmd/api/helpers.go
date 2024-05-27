@@ -6,8 +6,13 @@ import (
 	"net/url"
 )
 
-func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
-	js, err := json.Marshal(data)
+type envelope map[string]any
+
+func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
+	// in a very very performance sensitive environment, it's worth
+	// changing from MarshalIndent to Marshal. since MarshalIndent
+	// takes 65% longer to run and uses 30% more memory
+	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
 	}
