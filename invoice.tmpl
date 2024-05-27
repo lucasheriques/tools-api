@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title>{{.VendorInfo.Name}} - {{.InvoiceNumber}}</title>
@@ -42,7 +43,7 @@
         }
 
         .invoice-box table tr.information table td {
-            padding-bottom: 32px;
+            padding-bottom: 24px;
         }
 
         .invoice-box table tr.heading td {
@@ -55,7 +56,7 @@
             padding-bottom: 8px;
         }
 
-        .invoice-box table tr.item td{
+        .invoice-box table tr.item td {
             border-bottom: 1px solid #eee;
         }
 
@@ -106,7 +107,8 @@
                     <table>
                         <tr>
                             <td class="title">
-                                <img src="{{.CompanyLogo}}" style="width:100%; max-width:150px; max-height: 150px; object-fit: cover;">
+                                <img src="{{.CompanyLogo}}"
+                                    style="width:100%; max-width:150px; max-height: 150px; object-fit: cover;">
                             </td>
                             <td>
                                 Invoice #: {{.InvoiceNumber}}<br>
@@ -170,4 +172,5 @@
         </table>
     </div>
 </body>
+
 </html>

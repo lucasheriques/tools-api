@@ -11,16 +11,16 @@ import (
 )
 
 func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request) {
-	paymentMethod := r.FormValue("paymentMethod")
-	vendorName := r.FormValue("vendorName")
-	accountNumber := r.FormValue("accountNumber")
+	qs := r.URL.Query()
+	paymentMethod := app.readString(qs, "paymentMethod", "ach")
+	vendorName := app.readString(qs, "vendorName", "Acme Corp.")
+	accountNumber := app.readString(qs, "accountNumber", invoices.GenerateAccountNumber())
 
 	htmlContent, err := invoices.GenerateHtmlFile(invoices.GenerateInvoiceOptions{
 		PaymentMethod: paymentMethod,
 		VendorName:    vendorName,
 		AccountNumber: accountNumber,
 	})
-
 	if err != nil {
 		app.logger.Error(fmt.Sprintf("Failed to create index.html file: %v", err))
 		http.Error(w, fmt.Sprintf("Failed to create index.html file: %v", err), http.StatusInternalServerError)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"log"
 	"math/rand"
 	"os"
 	"strconv"
@@ -55,7 +54,7 @@ type InvoicePaymentDetails struct {
 
 const tmplFile = "invoice.tmpl"
 
-func generateAccountNumber() string {
+func GenerateAccountNumber() string {
 	min := int64(1e8)  // The smallest 9 digit number
 	max := int64(1e12) // The smallest 13 digit number
 	return fmt.Sprintf("%d", min+rand.Int63n(max-min))
@@ -112,9 +111,6 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 	vendorEmail := "bills@" + utils.TransformIntoValidEmailName(vendorName) + "." + fake.Internet().Domain()
 
 	accountNumber := options.AccountNumber
-	if accountNumber == "" {
-		accountNumber = generateAccountNumber()
-	}
 
 	paymentMethods := generatePaymentMethods(vendorName, accountNumber, vendorFullAddress)
 
@@ -122,8 +118,6 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 	if !ok {
 		paymentDetails = paymentMethods["ach"] // Default to ACH or handle the error.
 	}
-
-	log.Printf("Generating invoice of payment method %s", options.PaymentMethod)
 
 	invoiceItems, total := generateInvoiceItems()
 
