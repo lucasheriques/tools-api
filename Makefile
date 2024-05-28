@@ -60,3 +60,10 @@ terraform:
 	terraform init
 	terraform plan
 	terraform apply
+
+
+.PHONY: tf/apply
+tf/apply:
+	@echo 'Running terraform apply...'
+	cd terraform
+	terraform apply

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"math/rand"
 	"os"
 	"slices"
 	"strconv"
@@ -60,12 +59,6 @@ type InvoiceItem struct {
 }
 
 const tmplFile = "invoice.tmpl"
-
-func GenerateAccountNumber() int64 {
-	min := int64(1e8)  // The smallest 9 digit number
-	max := int64(1e12) // The smallest 13 digit number
-	return min + rand.Int63n(max-min)
-}
 
 func getPaymentMethods(accountNumber int64, companyName, address string, ach, wire, check bool) []PaymentMethod {
 	paymentMethods := []PaymentMethod{}
@@ -162,7 +155,7 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 			Name:          "Acme Corp.",
 			StreetAddress: "1234 Main St",
 			CityStateZip:  "San Francisco, CA 94111",
-			Email:         "john@acme.com",
+			Email:         "accounting@acme.com",
 		},
 		PaymentMethods: getPaymentMethods(accountNumber, vendorName, vendorFullAddress, includeAchRail, includeWireRail, includeCheckRail),
 		Items:          invoiceItems,

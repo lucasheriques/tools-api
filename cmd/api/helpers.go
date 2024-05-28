@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -84,4 +85,10 @@ func (app *application) readInt64(qs url.Values, key string, defaultValue int64,
 	}
 
 	return i
+}
+
+func (app *application) getRandomAccountNumber() int64 {
+	min := int64(1e8)  // The smallest 9 digit number
+	max := int64(1e12) // The smallest 13 digit number
+	return min + rand.Int63n(max-min)
 }

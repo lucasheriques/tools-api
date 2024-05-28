@@ -18,7 +18,7 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	qs := r.URL.Query()
 	paymentMethods := app.readCSV(qs, "paymentMethods", []string{"ach"})
 	vendorName := app.readString(qs, "vendorName", "")
-	accountNumber := app.readInt64(qs, "accountNumber", 0, v)
+	accountNumber := app.readInt64(qs, "accountNumber", app.getRandomAccountNumber(), v)
 	numberOfItems := app.readInt(qs, "numberOfItems", rand.Intn(8)+1, v)
 
 	v.Check(validator.PermittedValues(paymentMethods, []string{"ach", "check", "wire"}), "paymentMethods", "must be list of ['ach', 'check', 'wire']")
