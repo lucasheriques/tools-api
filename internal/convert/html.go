@@ -1,57 +1,35 @@
 package convert
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
+
+	"github.com/dcaraxes/gotenberg-go-client/v8"
 )
 
-const gotenbergURL = "http://gotenberg.default.svc.cluster.local:80/forms/chromium/convert/html"
+const gotenbergURL = "http://gotenberg.default.svc.cluster.local:80"
 
-func ConvertHtmlStringToPdf(htmlContent []byte) ([]byte, error) {
-	tempDir, err := os.MkdirTemp("", "gotenberg")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create a temporary directory: %v", err)
+func HtmlToPdfV2(htmlFile *os.File) ([]byte, error) {
+	client := &gotenberg.Client{
+		Hostname: gotenbergURL,
 	}
 
-	tempFilePath := filepath.Join(tempDir, "index.html")
-	err = os.WriteFile(tempFilePath, htmlContent, 0644)
+	index, err := gotenberg.NewDocumentFromPath("index.html", htmlFile.Name())
 	if err != nil {
-		return nil, fmt.Errorf("failed to write HTML content to index.html: %v", err)
+		return nil, fmt.Errorf("failed to create new document: %v", err)
 	}
 
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
+	req := gotenberg.NewHTMLRequest(index)
+	req.SkipNetworkIdleEvent()
 
-	fw, err := w.CreateFormFile("files[index.html]", "index.html")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create form file: %v", err)
-	}
-	htmlFile, err := os.Open(tempFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open index.html file: %v", err)
-	}
-	defer htmlFile.Close()
+	client.Store(req, "/gotenberg/test.pdf")
 
-	if _, err = io.Copy(fw, htmlFile); err != nil {
-		return nil, fmt.Errorf("failed to copy index.html file to form file: %v", err)
-	}
-	w.Close()
-
-	req, err := http.NewRequest("POST", gotenbergURL, &b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create new HTTP request: %v", err)
-	}
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send HTTP request: %v", err)
+	resp, _ := client.Post(req)
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("gotenberg responded with status code %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 	defer resp.Body.Close()
 

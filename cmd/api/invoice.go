@@ -20,8 +20,8 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 
 	v := validator.New()
 
-	v.Check(validator.PermittedValue(paymentMethod, "ach", "check", "wire"), "paymentMethod", "Invalid payment method. Options: 'ach', 'check', 'wire'")
-	v.Check(validator.Matches(accountNumber, regexp.MustCompile("^[0-9]+$")), "accountNumber", "Invalid account number. Must be only digits.")
+	v.Check(validator.PermittedValue(paymentMethod, "ach", "check", "wire"), "paymentMethod", "must be 'ach', 'check', 'wire'")
+	v.Check(validator.Matches(accountNumber, regexp.MustCompile("^[0-9]+$")), "accountNumber", "must be only digits.")
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
@@ -41,8 +41,8 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	app.logger.Info("Converting HTML to PDF...")
-	pdfContent, err := convert.ConvertHtmlStringToPdf(htmlContent)
+	app.logger.Info("Converting HTML to PDF v2...")
+	pdfContent, err := convert.HtmlToPdfV2(htmlContent)
 	if err != nil {
 		http.Error(w, "Failed to convert HTML to PDF", http.StatusInternalServerError)
 		app.logger.Error(fmt.Sprintf("Error converting HTML to PDF: %v", err))
@@ -58,5 +58,4 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	}
 
 	app.logger.Info("Successfully converted HTML to PDF and sent to client")
-
 }

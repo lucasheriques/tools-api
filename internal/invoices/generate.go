@@ -150,7 +150,7 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 	return data
 }
 
-func GenerateHtmlFile(options GenerateInvoiceOptions) ([]byte, error) {
+func GenerateHtmlFile(options GenerateInvoiceOptions) (*os.File, error) {
 	invoiceData := generateData(options)
 
 	templ, err := template.New(tmplFile).Funcs(template.FuncMap{
@@ -162,22 +162,16 @@ func GenerateHtmlFile(options GenerateInvoiceOptions) ([]byte, error) {
 		return nil, fmt.Errorf("error parsing template template: %v", err)
 	}
 
-	tmpFile, err := os.CreateTemp("", "invoice-*.html")
+	tmpFile, err := os.CreateTemp("", "invoice.html")
 	if err != nil {
 		return nil, fmt.Errorf("error creating index.html file: %v", err)
 	}
 	defer tmpFile.Close()
-	defer os.Remove(tmpFile.Name())
 
 	err = templ.Execute(tmpFile, invoiceData)
 	if err != nil {
 		return nil, fmt.Errorf("error executing template: %v", err)
 	}
 
-	htmlContent, err := os.ReadFile(tmpFile.Name())
-	if err != nil {
-		return nil, fmt.Errorf("error reading HTML file: %v", err)
-	}
-
-	return htmlContent, nil
+	return tmpFile, nil
 }
