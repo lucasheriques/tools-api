@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
+
+	"tools.lucasfaria.dev/internal/validator"
 )
 
 type envelope map[string]any
@@ -38,4 +42,30 @@ func (app *application) readString(qs url.Values, key string, defaultValue strin
 	}
 
 	return s
+}
+
+func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	return strings.Split(s, ",")
+}
+
+func (app *application) readInt64(qs url.Values, key string, defaultValue int64, v *validator.Validator) int64 {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		v.AddError(key, "must be an integer")
+		return defaultValue
+	}
+
+	return i
 }

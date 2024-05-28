@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 
 	"tools.lucasfaria.dev/internal/convert"
 	"tools.lucasfaria.dev/internal/invoices"
@@ -13,15 +12,14 @@ import (
 )
 
 func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request) {
-	qs := r.URL.Query()
-	paymentMethod := app.readString(qs, "paymentMethod", "ach")
-	vendorName := app.readString(qs, "vendorName", "Acme Corp.")
-	accountNumber := app.readString(qs, "accountNumber", invoices.GenerateAccountNumber())
-
 	v := validator.New()
 
+	qs := r.URL.Query()
+	paymentMethod := app.readString(qs, "paymentMethod", "ach")
+	vendorName := app.readString(qs, "vendorName", "")
+	accountNumber := app.readInt64(qs, "accountNumber", 0, v)
+
 	v.Check(validator.PermittedValue(paymentMethod, "ach", "check", "wire"), "paymentMethod", "must be 'ach', 'check', 'wire'")
-	v.Check(validator.Matches(accountNumber, regexp.MustCompile("^[0-9]+$")), "accountNumber", "must be only digits.")
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)

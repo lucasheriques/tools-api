@@ -22,7 +22,7 @@ func HtmlToPdfV2(htmlFile *os.File) ([]byte, error) {
 	}
 
 	req := gotenberg.NewHTMLRequest(index)
-	req.SkipNetworkIdleEvent()
+	// req.SkipNetworkIdleEvent()
 
 	client.Store(req, "/gotenberg/test.pdf")
 

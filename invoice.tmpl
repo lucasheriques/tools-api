@@ -140,16 +140,19 @@
                 </td>
             </tr>
 
+            {{range .PaymentMethods}}
             <tr class="heading">
                 <td>Payment Method</td>
-                <td>{{.PaymentMethod}}</td>
+                <td>{{.Rail}}</td>
             </tr>
 
-            {{range .PaymentDetails}}
+            {{range .Details}}
             <tr class="details">
                 <td>{{.Name}}</td>
                 <td>{{.Value}}</td>
             </tr>
+            {{end}}
+
             {{end}}
 
             <tr class="heading">

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var validEmailOnlyValidCharacters = regexp.MustCompile(`[^a-z0-9._%+\-]+`)
+var validEmailOnlyValidCharacters = regexp.MustCompile(`[^a-z0-9_%+\-]+`)
 
 func TransformIntoValidEmailName(name string) string {
 	name = strings.ToLower(name)

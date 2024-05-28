@@ -19,7 +19,7 @@ import (
 type GenerateInvoiceOptions struct {
 	PaymentMethod string
 	VendorName    string
-	AccountNumber string
+	AccountNumber int64
 }
 
 type CompanyInfo struct {
@@ -27,6 +27,15 @@ type CompanyInfo struct {
 	StreetAddress string
 	CityStateZip  string
 	Email         string
+}
+type InvoicePaymentDetails struct {
+	Name  string
+	Value string
+}
+
+type PaymentMethod struct {
+	Rail    string
+	Details []InvoicePaymentDetails
 }
 
 type InvoiceData struct {
@@ -36,6 +45,7 @@ type InvoiceData struct {
 	DueDate        string
 	VendorInfo     CompanyInfo
 	CustomerInfo   CompanyInfo
+	PaymentMethods []PaymentMethod
 	PaymentMethod  string
 	PaymentDetails []InvoicePaymentDetails
 	Items          []InvoiceItem
@@ -47,37 +57,48 @@ type InvoiceItem struct {
 	Price       string
 }
 
-type InvoicePaymentDetails struct {
-	Name  string
-	Value string
-}
-
 const tmplFile = "invoice.tmpl"
 
-func GenerateAccountNumber() string {
+func GenerateAccountNumber() int64 {
 	min := int64(1e8)  // The smallest 9 digit number
 	max := int64(1e12) // The smallest 13 digit number
-	return fmt.Sprintf("%d", min+rand.Int63n(max-min))
+	return min + rand.Int63n(max-min)
 }
 
-func generatePaymentMethods(companyName, accountNumber, address string) map[string][]InvoicePaymentDetails {
-	return map[string][]InvoicePaymentDetails{
-		"ach": {
-			{Name: "Routing number", Value: "026001591"},
-			{Name: "Account number", Value: accountNumber},
-			{Name: "Beneficiary name", Value: companyName},
-		},
-		"wire": {
-			{Name: "Bank name", Value: "Wells Fargo"},
-			{Name: "Routing number", Value: "121000248"},
-			{Name: "Account number", Value: accountNumber},
-			{Name: "Beneficiary name", Value: companyName},
-		},
-		"check": {
-			{Name: "Payable to", Value: companyName},
-			{Name: "Address", Value: address},
-		},
+func getPaymentMethods(accountNumber int64, companyName, address string, ach, wire, check bool) []PaymentMethod {
+	paymentMethods := []PaymentMethod{}
+
+	if ach {
+		paymentMethods = append(paymentMethods, PaymentMethod{
+			Rail: "ACH",
+			Details: []InvoicePaymentDetails{
+				{Name: "Routing number", Value: "026001591"},
+				{Name: "Account number", Value: strconv.FormatInt(accountNumber, 10)},
+				{Name: "Beneficiary name", Value: companyName},
+			}})
 	}
+
+	if wire {
+		paymentMethods = append(paymentMethods, PaymentMethod{
+			Rail: "Wire",
+			Details: []InvoicePaymentDetails{
+				{Name: "Bank name", Value: "Wells Fargo"},
+				{Name: "Routing number", Value: "121000248"},
+				{Name: "Account number", Value: strconv.FormatInt(accountNumber, 10)},
+				{Name: "Beneficiary name", Value: companyName},
+			}})
+	}
+
+	if check {
+		paymentMethods = append(paymentMethods, PaymentMethod{
+			Rail: "Check",
+			Details: []InvoicePaymentDetails{
+				{Name: "Payable to", Value: companyName},
+				{Name: "Address", Value: address},
+			}})
+	}
+
+	return paymentMethods
 }
 
 func generateInvoiceItems() ([]InvoiceItem, string) {
@@ -108,16 +129,9 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 	vendorStreetAddress := vendorAddress.StreetName() + " " + vendorAddress.StreetSuffix() + ", " + strconv.Itoa(fake.RandomNumber(3))
 	vendorCityStateZip := vendorAddress.City() + ", " + vendorAddress.StateAbbr() + " " + strings.Split(vendorAddress.PostCode(), "-")[0]
 	vendorFullAddress := vendorStreetAddress + ", " + vendorCityStateZip
-	vendorEmail := "bills@" + utils.TransformIntoValidEmailName(vendorName) + "." + fake.Internet().Domain()
+	vendorEmail := "bills@" + utils.TransformIntoValidEmailName(vendorName) + ".com"
 
 	accountNumber := options.AccountNumber
-
-	paymentMethods := generatePaymentMethods(vendorName, accountNumber, vendorFullAddress)
-
-	paymentDetails, ok := paymentMethods[options.PaymentMethod]
-	if !ok {
-		paymentDetails = paymentMethods["ach"] // Default to ACH or handle the error.
-	}
 
 	invoiceItems, total := generateInvoiceItems()
 
@@ -141,8 +155,7 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 			CityStateZip:  "San Francisco, CA 94111",
 			Email:         "john@acme.com",
 		},
-		PaymentMethod:  strings.ToTitle(options.PaymentMethod),
-		PaymentDetails: paymentDetails,
+		PaymentMethods: getPaymentMethods(accountNumber, vendorName, vendorFullAddress, true, false, false),
 		Items:          invoiceItems,
 		Total:          total,
 	}
