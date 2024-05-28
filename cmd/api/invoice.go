@@ -15,11 +15,11 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	v := validator.New()
 
 	qs := r.URL.Query()
-	paymentMethod := app.readString(qs, "paymentMethod", "ach")
+	paymentMethods := app.readCSV(qs, "paymentMethods", []string{"ach"})
 	vendorName := app.readString(qs, "vendorName", "")
 	accountNumber := app.readInt64(qs, "accountNumber", 0, v)
 
-	v.Check(validator.PermittedValue(paymentMethod, "ach", "check", "wire"), "paymentMethod", "must be 'ach', 'check', 'wire'")
+	v.Check(validator.PermittedValues(paymentMethods, []string{"ach", "check", "wire"}), "paymentMethods", "must be list of ['ach', 'check', 'wire']")
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
@@ -29,9 +29,9 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	// check if string only has numbers
 
 	htmlContent, err := invoices.GenerateHtmlFile(invoices.GenerateInvoiceOptions{
-		PaymentMethod: paymentMethod,
-		VendorName:    vendorName,
-		AccountNumber: accountNumber,
+		PaymentMethods: paymentMethods,
+		VendorName:     vendorName,
+		AccountNumber:  accountNumber,
 	})
 	if err != nil {
 		app.logger.Error(fmt.Sprintf("Failed to create index.html file: %v", err))

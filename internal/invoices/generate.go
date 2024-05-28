@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"math/rand"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -17,9 +18,9 @@ import (
 )
 
 type GenerateInvoiceOptions struct {
-	PaymentMethod string
-	VendorName    string
-	AccountNumber int64
+	PaymentMethods []string
+	VendorName     string
+	AccountNumber  int64
 }
 
 type CompanyInfo struct {
@@ -117,6 +118,10 @@ func generateInvoiceItems() ([]InvoiceItem, string) {
 	return items, fmt.Sprintf("$%.2f", total)
 }
 
+func includePaymentRails(rail string, options []string) bool {
+	return slices.Contains(options, rail)
+}
+
 func generateData(options GenerateInvoiceOptions) InvoiceData {
 	fake := faker.New()
 	vendorName := options.VendorName
@@ -135,8 +140,12 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 
 	invoiceItems, total := generateInvoiceItems()
 
+	includeAchRail := includePaymentRails("ach", options.PaymentMethods)
+	includeWireRail := includePaymentRails("wire", options.PaymentMethods)
+	includeCheckRail := includePaymentRails("check", options.PaymentMethods)
+
 	data := InvoiceData{
-		CompanyLogo: "https://cataas.com/cat",
+		CompanyLogo: fmt.Sprintf("https://ui-avatars.com/api/?background=0D8ABC&color=fff&name=%s&rounded=true&size=64", strings.ReplaceAll(vendorName, " ", "+")),
 		// convert from int to string
 		InvoiceNumber: strconv.Itoa(fake.RandomNumber(5)),
 		// Invoice date should be today's date
@@ -155,7 +164,7 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 			CityStateZip:  "San Francisco, CA 94111",
 			Email:         "john@acme.com",
 		},
-		PaymentMethods: getPaymentMethods(accountNumber, vendorName, vendorFullAddress, true, false, false),
+		PaymentMethods: getPaymentMethods(accountNumber, vendorName, vendorFullAddress, includeAchRail, includeWireRail, includeCheckRail),
 		Items:          invoiceItems,
 		Total:          total,
 	}
@@ -169,6 +178,9 @@ func GenerateHtmlFile(options GenerateInvoiceOptions) (*os.File, error) {
 	templ, err := template.New(tmplFile).Funcs(template.FuncMap{
 		"nl2br": func(text string) template.HTML {
 			return template.HTML(strings.Replace(html.EscapeString(text), "\n", "<br>", -1))
+		},
+		"spacesToPlus": func(text string) string {
+			return strings.ReplaceAll(text, " ", "+")
 		},
 	}).ParseFiles(tmplFile)
 	if err != nil {
