@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"tools.lucasfaria.dev/internal/convert"
-	"tools.lucasfaria.dev/internal/invoices"
+	"tools.lucasfaria.dev/internal/generate"
 	"tools.lucasfaria.dev/internal/validator"
 )
 
@@ -31,7 +31,7 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 
 	// check if string only has numbers
 
-	htmlContent, err := invoices.GenerateHtmlFile(&invoices.GenerateInvoiceOptions{
+	htmlContent, err := generate.GenerateHtmlFile(&generate.GenerateInvoiceOptions{
 		PaymentMethods: paymentMethods,
 		VendorName:     vendorName,
 		AccountNumber:  accountNumber,
