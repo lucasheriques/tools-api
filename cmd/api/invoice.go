@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 
 	"tools.lucasfaria.dev/internal/convert"
@@ -18,8 +19,10 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	paymentMethods := app.readCSV(qs, "paymentMethods", []string{"ach"})
 	vendorName := app.readString(qs, "vendorName", "")
 	accountNumber := app.readInt64(qs, "accountNumber", 0, v)
+	numberOfItems := app.readInt(qs, "numberOfItems", rand.Intn(8)+1, v)
 
 	v.Check(validator.PermittedValues(paymentMethods, []string{"ach", "check", "wire"}), "paymentMethods", "must be list of ['ach', 'check', 'wire']")
+	v.Check(numberOfItems >= 1 && numberOfItems <= 20, "numberOfItems", "must be between 1 and 20")
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
@@ -28,10 +31,11 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 
 	// check if string only has numbers
 
-	htmlContent, err := invoices.GenerateHtmlFile(invoices.GenerateInvoiceOptions{
+	htmlContent, err := invoices.GenerateHtmlFile(&invoices.GenerateInvoiceOptions{
 		PaymentMethods: paymentMethods,
 		VendorName:     vendorName,
 		AccountNumber:  accountNumber,
+		NumberOfItems:  numberOfItems,
 	})
 	if err != nil {
 		app.logger.Error(fmt.Sprintf("Failed to create index.html file: %v", err))

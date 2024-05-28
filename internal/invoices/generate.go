@@ -21,6 +21,7 @@ type GenerateInvoiceOptions struct {
 	PaymentMethods []string
 	VendorName     string
 	AccountNumber  int64
+	NumberOfItems  int
 }
 
 type CompanyInfo struct {
@@ -102,12 +103,11 @@ func getPaymentMethods(accountNumber int64, companyName, address string, ach, wi
 	return paymentMethods
 }
 
-func generateInvoiceItems() ([]InvoiceItem, string) {
+func generateInvoiceItems(numOfItems int) ([]InvoiceItem, string) {
 	fake := faker.New()
 	items := []InvoiceItem{}
 	total := 0.0
-	// random number between 1 and 8
-	for i := 0; i < rand.Intn(8)+1; i++ {
+	for i := 0; i < numOfItems; i++ {
 		price := fake.Float64(2, 100, 1000)
 		total += price
 		items = append(items, InvoiceItem{
@@ -122,7 +122,7 @@ func includePaymentRails(rail string, options []string) bool {
 	return slices.Contains(options, rail)
 }
 
-func generateData(options GenerateInvoiceOptions) InvoiceData {
+func generateData(options *GenerateInvoiceOptions) InvoiceData {
 	fake := faker.New()
 	vendorName := options.VendorName
 	if vendorName == "" {
@@ -138,7 +138,7 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 
 	accountNumber := options.AccountNumber
 
-	invoiceItems, total := generateInvoiceItems()
+	invoiceItems, total := generateInvoiceItems(options.NumberOfItems)
 
 	includeAchRail := includePaymentRails("ach", options.PaymentMethods)
 	includeWireRail := includePaymentRails("wire", options.PaymentMethods)
@@ -172,7 +172,7 @@ func generateData(options GenerateInvoiceOptions) InvoiceData {
 	return data
 }
 
-func GenerateHtmlFile(options GenerateInvoiceOptions) (*os.File, error) {
+func GenerateHtmlFile(options *GenerateInvoiceOptions) (*os.File, error) {
 	invoiceData := generateData(options)
 
 	templ, err := template.New(tmplFile).Funcs(template.FuncMap{
