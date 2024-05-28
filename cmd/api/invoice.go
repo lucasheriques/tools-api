@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"tools.lucasfaria.dev/internal/convert"
 	"tools.lucasfaria.dev/internal/generate"
@@ -15,27 +16,31 @@ import (
 func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request) {
 	v := validator.New()
 
+	now := time.Now()
 	qs := r.URL.Query()
 	paymentMethods := app.readCSV(qs, "paymentMethods", []string{"ach"})
 	vendorName := app.readString(qs, "vendorName", "")
 	accountNumber := app.readInt64(qs, "accountNumber", app.getRandomAccountNumber(), v)
 	numberOfItems := app.readInt(qs, "numberOfItems", rand.Intn(8)+1, v)
+	invoiceDate := app.readDate(qs, "createdAt", now, v)
+	dueDate := app.readDate(qs, "dueAt", now.AddDate(0, 0, 30), v)
 
 	v.Check(validator.PermittedValues(paymentMethods, []string{"ach", "check", "wire"}), "paymentMethods", "must be list of ['ach', 'check', 'wire']")
 	v.Check(numberOfItems >= 1 && numberOfItems <= 20, "numberOfItems", "must be between 1 and 20")
+	v.Check(invoiceDate.Before(dueDate), "invoiceDate", "must be before dueDate")
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	// check if string only has numbers
-
 	htmlContent, err := generate.GenerateHtmlFile(&generate.GenerateInvoiceOptions{
 		PaymentMethods: paymentMethods,
 		VendorName:     vendorName,
 		AccountNumber:  accountNumber,
 		NumberOfItems:  numberOfItems,
+		InvoiceDate:    invoiceDate.Format("January 2, 2006"),
+		DueDate:        dueDate.Format("January 2, 2006"),
 	})
 	if err != nil {
 		app.logger.Error(fmt.Sprintf("Failed to create index.html file: %v", err))

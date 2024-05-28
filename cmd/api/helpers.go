@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"tools.lucasfaria.dev/internal/validator"
 )
@@ -43,6 +44,22 @@ func (app *application) readString(qs url.Values, key string, defaultValue strin
 	}
 
 	return s
+}
+
+func (app *application) readDate(qs url.Values, key string, defaultValue time.Time, v *validator.Validator) time.Time {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	t, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		v.AddError(key, "must be in format YYYY-MM-DD")
+		return defaultValue
+	}
+
+	return t
 }
 
 func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {

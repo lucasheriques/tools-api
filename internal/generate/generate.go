@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jaswdr/faker/v2"
 	"golang.org/x/text/cases"
@@ -21,6 +20,8 @@ type GenerateInvoiceOptions struct {
 	VendorName     string
 	AccountNumber  int64
 	NumberOfItems  int
+	InvoiceDate    string
+	DueDate        string
 }
 
 type CompanyInfo struct {
@@ -121,7 +122,6 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 	if vendorName == "" {
 		vendorName = fake.Company().Name()
 	}
-	now := time.Now()
 	vendorAddress := fake.Address()
 
 	vendorStreetAddress := vendorAddress.StreetName() + " " + vendorAddress.StreetSuffix() + ", " + strconv.Itoa(fake.RandomNumber(3))
@@ -142,9 +142,9 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 		// convert from int to string
 		InvoiceNumber: strconv.Itoa(fake.RandomNumber(5)),
 		// Invoice date should be today's date
-		InvoiceDate: now.Format("January 2, 2006"),
+		InvoiceDate: options.InvoiceDate,
 		// Due date should be 30 days from today
-		DueDate: now.AddDate(0, 0, 30).Format("January 2, 2006"),
+		DueDate: options.DueDate,
 		VendorInfo: CompanyInfo{
 			Name:          vendorName,
 			StreetAddress: vendorStreetAddress,
@@ -155,7 +155,7 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 			Name:          "Acme Corp.",
 			StreetAddress: "1234 Main St",
 			CityStateZip:  "San Francisco, CA 94111",
-			Email:         "accounting@acme.com",
+			Email:         "mary@acme.com",
 		},
 		PaymentMethods: getPaymentMethods(accountNumber, vendorName, vendorFullAddress, includeAchRail, includeWireRail, includeCheckRail),
 		Items:          invoiceItems,

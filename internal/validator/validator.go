@@ -3,6 +3,7 @@ package validator
 import (
 	"regexp"
 	"slices"
+	"time"
 )
 
 var (
@@ -59,4 +60,10 @@ func Unique[T comparable](values []T) bool {
 	}
 
 	return len(uniqueValues) == len(values)
+}
+
+func ValidateDate(dateStr string) bool {
+	layout := "2006-01-02"
+	_, err := time.Parse(layout, dateStr)
+	return err == nil
 }
