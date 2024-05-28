@@ -58,6 +58,7 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 
 	app.logger.Info("Sending PDF content to client...")
 	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Size", fmt.Sprintf("%d", len(pdfContent)))
 	if _, err := io.Copy(w, bytes.NewReader(pdfContent)); err != nil {
 		app.logger.Error(fmt.Sprintf("Error sending PDF content to client: %v", err))
 		http.Error(w, "Failed to send PDF content to client", http.StatusInternalServerError)
