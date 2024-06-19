@@ -78,7 +78,7 @@ tf/apply:
 .PHONY: dev
 dev:
 	@echo 'Starting application with Docker Compose...'
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build --remove-orphans
 
 ## stop/docker: stop the application with Docker Compose
 .PHONY: stop/docker

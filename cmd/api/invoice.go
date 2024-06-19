@@ -63,6 +63,10 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	app.logger.Info("Creating invoice with the following parameters: " +
+		fmt.Sprintf("paymentMethods=%v, vendorName=%v, accountNumber=%v, numberOfItems=%v, invoiceDate=%v, dueDate=%v, currency=%v",
+			paymentMethods, vendorName, accountNumber, numberOfItems, invoiceDate, dueDate, currency))
+
 	htmlContent, err := generate.GenerateHtmlFile(&generate.GenerateInvoiceOptions{
 		PaymentMethods: paymentMethods,
 		VendorName:     vendorName,
