@@ -29,4 +29,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: dockerhub-username/repository-name:tag
+          tags: lucasheriques/go-api:latest
+          file: deployments/Dockerfile-prod
