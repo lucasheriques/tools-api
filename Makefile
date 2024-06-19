@@ -70,8 +70,8 @@ tf/apply:
 
 
 ## start/docker: start the application with Docker Compose
-.PHONY: start/docker
-start/docker:
+.PHONY: dev
+dev:
 	@echo 'Starting application with Docker Compose...'
 	docker-compose up --build
 
