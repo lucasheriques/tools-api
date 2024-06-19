@@ -35,6 +35,15 @@ audit:
 	go test -race -vet=off ./...
 
 
+.PHONY: ci
+ci:
+	go mod tidy
+	go mod verify
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	go vet ./...
+	staticcheck ./...
+	go test -race -vet=off ./...
+
 ## variables
 GCP_PROJECT_ID = lucasfaria-tools-api
 DOCKER_IMAGE_NAME = lucasheriques/go-api

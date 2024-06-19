@@ -22,8 +22,8 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Run audit
-        run: make audit
+      - name: Run CI
+        run: make ci
 
       - name: Build and push
         uses: docker/build-push-action@v2
