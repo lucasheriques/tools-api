@@ -49,7 +49,7 @@ docker/build:
 .PHONY: docker/build-and-push
 docker/build-and-push:
 	docker login
-	docker build -t ${DOCKER_IMAGE_NAME}:latest --file ./deployments/Dockerfile-prod .
+	docker build -t ${DOCKER_IMAGE_NAME}:latest --file ./deployments/Dockerfile-prod . --platform linux/amd64
 	docker push ${DOCKER_IMAGE_NAME}:latest
 
 .PHONY: terraform
