@@ -4,9 +4,3 @@ services:
     ports:
       - "4000:4000"
     platform: linux/amd64
-
-  caddy:
-    ports:
-      - "80:80"
-      - "443:443"
-    platform: linux/amd64
