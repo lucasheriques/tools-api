@@ -9,7 +9,7 @@ import (
 	"github.com/dcaraxes/gotenberg-go-client/v8"
 )
 
-const gotenbergURL = "http://gotenberg.default.svc.cluster.local:80"
+const gotenbergURL = "https://gotenberg-tpaabjcpka-uw.a.run.app"
 
 func HtmlToPdfV2(htmlFile *os.File) ([]byte, error) {
 	client := &gotenberg.Client{

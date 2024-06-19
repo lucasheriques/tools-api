@@ -1,0 +1,23 @@
+# Start from the official Golang base image
+FROM golang:1.22-alpine
+
+# Install reflex for hot reloading
+RUN apk add --no-cache git && go install github.com/cespare/reflex@latest
+
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies
+RUN go mod download
+
+# Copy the source code
+COPY . .
+
+# Install ca-certificates for Alpine
+RUN apk --no-cache add ca-certificates
+
+# Command to run reflex for hot reloading
+CMD ["reflex", "-r", "\\.go$$", "-s", "--", "sh", "-c", "go run ./cmd/api"]
