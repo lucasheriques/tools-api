@@ -7,7 +7,3 @@ services:
       - GOOS=linux
     restart: unless-stopped
     platform: linux/amd64
-
-volumes:
-  caddy_data:
-  caddy_config:
