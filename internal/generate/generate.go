@@ -22,6 +22,7 @@ type GenerateInvoiceOptions struct {
 	NumberOfItems  int
 	InvoiceDate    string
 	DueDate        string
+	Currency       string
 }
 
 type CompanyInfo struct {
@@ -61,6 +62,53 @@ type InvoiceItem struct {
 
 const tmplFile = "invoice.tmpl"
 
+func getCurrenctSymbol(currency string) string {
+	switch currency {
+	case "usd":
+		return "$"
+	case "eur":
+		return "€"
+	case "jpy":
+		return "¥"
+	case "gbp":
+		return "£"
+	case "aud":
+		return "A$"
+	case "cad":
+		return "C$"
+	case "chf":
+		return "CHF"
+	case "cny":
+		return "¥"
+	case "sek":
+		return "kr"
+	case "nzd":
+		return "NZ$"
+	case "mxn":
+		return "Mex$"
+	case "sgd":
+		return "S$"
+	case "hkd":
+		return "HK$"
+	case "nok":
+		return "kr"
+	case "krw":
+		return "₩"
+	case "try":
+		return "₺"
+	case "rub":
+		return "₽"
+	case "inr":
+		return "₹"
+	case "brl":
+		return "R$"
+	case "zar":
+		return "R"
+	default:
+		return "$"
+	}
+}
+
 func getPaymentMethods(accountNumber int64, companyName, address string, ach, wire, check bool) []PaymentMethod {
 	paymentMethods := []PaymentMethod{}
 
@@ -97,7 +145,7 @@ func getPaymentMethods(accountNumber int64, companyName, address string, ach, wi
 	return paymentMethods
 }
 
-func generateInvoiceItems(numOfItems int) ([]InvoiceItem, string) {
+func generateInvoiceItems(numOfItems int, currency string) ([]InvoiceItem, string) {
 	fake := faker.New()
 	items := []InvoiceItem{}
 	total := 0.0
@@ -106,10 +154,10 @@ func generateInvoiceItems(numOfItems int) ([]InvoiceItem, string) {
 		total += price
 		items = append(items, InvoiceItem{
 			Description: cases.Title(language.English).String(fake.Company().BS()),
-			Price:       fmt.Sprintf("$%.2f", price),
+			Price:       fmt.Sprintf("%s%.2f", currency, price),
 		})
 	}
-	return items, fmt.Sprintf("$%.2f", total)
+	return items, fmt.Sprintf("%s%.2f", currency, total)
 }
 
 func includePaymentRails(rail string, options []string) bool {
@@ -123,6 +171,7 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 		vendorName = fake.Company().Name()
 	}
 	vendorAddress := fake.Address()
+	currency := getCurrenctSymbol(options.Currency)
 
 	vendorStreetAddress := vendorAddress.StreetName() + " " + vendorAddress.StreetSuffix() + ", " + strconv.Itoa(fake.RandomNumber(3))
 	vendorCityStateZip := vendorAddress.City() + ", " + vendorAddress.StateAbbr() + " " + strings.Split(vendorAddress.PostCode(), "-")[0]
@@ -131,7 +180,7 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 
 	accountNumber := options.AccountNumber
 
-	invoiceItems, total := generateInvoiceItems(options.NumberOfItems)
+	invoiceItems, total := generateInvoiceItems(options.NumberOfItems, currency)
 
 	includeAchRail := includePaymentRails("ach", options.PaymentMethods)
 	includeWireRail := includePaymentRails("wire", options.PaymentMethods)

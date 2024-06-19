@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"tools.lucasfaria.dev/internal/convert"
@@ -13,21 +14,49 @@ import (
 	"tools.lucasfaria.dev/internal/validator"
 )
 
+var validCurrencies = []string{
+	"usd", // United States Dollar
+	"eur", // Euro
+	"jpy", // Japanese Yen
+	"gbp", // British Pound Sterling
+	"aud", // Australian Dollar
+	"cad", // Canadian Dollar
+	"chf", // Swiss Franc
+	"cny", // Chinese Yuan
+	"sek", // Swedish Krona
+	"nzd", // New Zealand Dollar
+	"mxn", // Mexican Peso
+	"sgd", // Singapore Dollar
+	"hkd", // Hong Kong Dollar
+	"nok", // Norwegian Krone
+	"krw", // South Korean Won
+	"try", // Turkish Lira
+	"rub", // Russian Ruble
+	"inr", // Indian Rupee
+	"brl", // Brazilian Real
+	"zar", // South African Rand
+}
+
 func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request) {
 	v := validator.New()
 
 	now := time.Now()
 	qs := r.URL.Query()
 	paymentMethods := app.readCSV(qs, "paymentMethods", []string{"ach"})
+	for i, method := range paymentMethods {
+		paymentMethods[i] = strings.ToLower(method)
+	}
 	vendorName := app.readString(qs, "vendorName", "")
 	accountNumber := app.readInt64(qs, "accountNumber", app.getRandomAccountNumber(), v)
 	numberOfItems := app.readInt(qs, "numberOfItems", rand.Intn(8)+1, v)
 	invoiceDate := app.readDate(qs, "createdAt", now, v)
 	dueDate := app.readDate(qs, "dueAt", now.AddDate(0, 0, 30), v)
+	currency := strings.ToLower(app.readString(qs, "currency", "usd"))
 
 	v.Check(validator.PermittedValues(paymentMethods, []string{"ach", "check", "wire"}), "paymentMethods", "must be list of ['ach', 'check', 'wire']")
 	v.Check(numberOfItems >= 1 && numberOfItems <= 20, "numberOfItems", "must be between 1 and 20")
 	v.Check(invoiceDate.Before(dueDate), "invoiceDate", "must be before dueDate")
+	v.Check(validator.PermittedValue(currency, validCurrencies...), "currency", fmt.Sprintf("must be one of %v", validCurrencies))
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
@@ -41,6 +70,7 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 		NumberOfItems:  numberOfItems,
 		InvoiceDate:    invoiceDate.Format("January 2, 2006"),
 		DueDate:        dueDate.Format("January 2, 2006"),
+		Currency:       currency,
 	})
 	if err != nil {
 		app.logger.Error(fmt.Sprintf("Failed to create index.html file: %v", err))
