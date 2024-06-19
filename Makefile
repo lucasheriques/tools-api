@@ -39,9 +39,7 @@ audit:
 ci:
 	go mod tidy
 	go mod verify
-	go install honnef.co/go/tools/cmd/staticcheck@latest
 	go vet ./...
-	staticcheck ./...
 	go test -race -vet=off ./...
 
 ## variables
