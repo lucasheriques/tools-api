@@ -2,25 +2,16 @@ version: '3.8'
 
 services:
   api:
-    build:
-      context: .
-      dockerfile: deployments/Dockerfile-dev
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: ["reflex", "-r", "\\.go$$", "-s", "--", "sh", "-c", "go run ./cmd/api"]
-    ports:
-      - "4000:4000"
+    image: lucasheriques/go-api:latest
+    container_name: api-container
     environment:
       - CGO_ENABLED=0
       - GOOS=linux
+    restart: unless-stopped
 
   caddy:
     image: caddy:latest
     container_name: caddy
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data

@@ -71,17 +71,17 @@ tf/apply:
 .PHONY: dev
 dev:
 	@echo 'Starting application with Docker Compose...'
-	docker-compose up --build
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build
 
 ## stop/docker: stop the application with Docker Compose
 .PHONY: stop/docker
 stop/docker:
 	@echo 'Stopping application with Docker Compose...'
-	docker-compose down
+	docker compose down
 
 ## restart/docker: restart the application with Docker Compose
 .PHONY: restart/docker
 restart/docker:
 	@echo 'Restarting application with Docker Compose...'
-	docker-compose down
-	docker-compose up --build
+	docker compose down
+	docker compose up --build
