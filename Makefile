@@ -80,10 +80,15 @@ dev:
 	@echo 'Starting application with Docker Compose...'
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build --remove-orphans
 
+.PHONY: build/prod
+build/prod:
+	@echo 'Building production application with Docker Compose...'
+	docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build
+
 .PHONY: start
 start:
 	@echo 'Starting production application with Docker Compose...'
-	docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --remove-orphans
+	docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --remove-orphans --build
 
 .PHONY: stop
 stop:
