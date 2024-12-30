@@ -5,6 +5,8 @@ services:
     environment:
       - CGO_ENABLED=0
       - GOOS=linux
+    expose:
+      - "4000"  # This tells Docker the container is listening on port 4000
     restart: unless-stopped
     platform: linux/amd64
     healthcheck:
