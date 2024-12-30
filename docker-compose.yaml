@@ -2,8 +2,6 @@ services:
   api:
     image: lucasheriques/go-api:latest
     container_name: api-container
-    ports:
-      - "4000:4000"
     environment:
       - CGO_ENABLED=0
       - GOOS=linux
@@ -15,6 +13,8 @@ services:
       - "traefik.http.routers.tools-api.rule=Host(`tools.lucasfaria.dev`)"
       - traefik.http.routers.tools-api.entryPoints=http,https
       - traefik.http.services.tools-api.loadbalancer.server.port=4000
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.tools-api.middlewares=redirect-to-https"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:4000/v1/healthcheck || exit 1"]
       interval: 30s
@@ -23,5 +23,5 @@ services:
 
   gotenberg:
     image: gotenberg/gotenberg:8
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
