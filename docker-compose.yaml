@@ -2,11 +2,11 @@ services:
   api:
     image: lucasheriques/go-api:latest
     container_name: api-container
+    ports:
+      - "4000:4000"
     environment:
       - CGO_ENABLED=0
       - GOOS=linux
-    expose:
-      - "4000"  # This tells Docker the container is listening on port 4000
     restart: unless-stopped
     platform: linux/amd64
     healthcheck:
@@ -14,6 +14,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   gotenberg:
     image: gotenberg/gotenberg:8
     ports:

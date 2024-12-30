@@ -1,8 +1,0 @@
-services:
-  api:
-    build:
-      context: .
-      dockerfile: deployments/Dockerfile-prod
-    ports:
-      - "4000:4000"
-    platform: linux/amd64
