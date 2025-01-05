@@ -1,6 +1,8 @@
 services:
   api:
-    image: lucasheriques/go-api:latest
+    build:
+      context: .
+      dockerfile: deployments/Dockerfile-prod
     container_name: api-container
     environment:
       - CGO_ENABLED=0
