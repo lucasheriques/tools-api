@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
@@ -107,7 +106,7 @@ func (app *application) createInvoice(w http.ResponseWriter, r *http.Request) {
 	var input *generate.InvoiceData
 	app.logger.Info("Creating invoice with the JSON body")
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.logger.Error("failed to decode invoice data", "error", err.Error())
 		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
