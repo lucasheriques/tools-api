@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
@@ -67,7 +68,7 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 		fmt.Sprintf("paymentMethods=%v, vendorName=%v, accountNumber=%v, numberOfItems=%v, invoiceDate=%v, dueDate=%v, currency=%v",
 			paymentMethods, vendorName, accountNumber, numberOfItems, invoiceDate, dueDate, currency))
 
-	htmlContent, err := generate.GenerateHtmlFile(&generate.GenerateInvoiceOptions{
+	randomInvoice := generate.GenerateRandomInvoiceData(&generate.GenerateInvoiceOptions{
 		PaymentMethods: paymentMethods,
 		VendorName:     vendorName,
 		AccountNumber:  accountNumber,
@@ -76,13 +77,16 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 		DueDate:        dueDate.Format("January 2, 2006"),
 		Currency:       currency,
 	})
+
+	invoiceHtml, err := generate.GenerateInvoiceHtml(&randomInvoice)
+
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("failed to create index.html file: %v", err))
 		return
 	}
 
 	app.logger.Info("Converting HTML to PDF v2...")
-	pdfContent, err := convert.HtmlToPdfV2(htmlContent)
+	pdfContent, err := convert.HtmlToPdfV2(invoiceHtml)
 	if err != nil {
 		app.serverErrorResponse(w, r, fmt.Errorf("failed to convert HTML to PDF: %v", err))
 		return
@@ -97,4 +101,40 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	}
 
 	app.logger.Info("Successfully converted HTML to PDF and sent to client")
+}
+
+func (app *application) createInvoice(w http.ResponseWriter, r *http.Request) {
+	var input *generate.InvoiceData
+	app.logger.Info("Creating invoice with the JSON body")
+
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		app.logger.Error("failed to decode invoice data", "error", err.Error())
+		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	app.logger.Info("Generating invoice HTML")
+	invoiceHtml, err := generate.GenerateInvoiceHtml(input)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to create invoice.html file: %v", err))
+		return
+	}
+
+	app.logger.Info("Converting HTML to PDF")
+	pdfContent, err := convert.HtmlToPdfV2(invoiceHtml)
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to convert HTML to PDF: %v", err))
+		return
+	}
+
+	app.logger.Info("Sending PDF content to client")
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(pdfContent)))
+	if _, err := io.Copy(w, bytes.NewReader(pdfContent)); err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to send PDF content to client: %v", err))
+		return
+	}
+
+	app.logger.Info("Successfully created invoice and sent to client")
 }

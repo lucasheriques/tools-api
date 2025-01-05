@@ -164,7 +164,7 @@ func includePaymentRails(rail string, options []string) bool {
 	return slices.Contains(options, rail)
 }
 
-func generateData(options *GenerateInvoiceOptions) InvoiceData {
+func GenerateRandomInvoiceData(options *GenerateInvoiceOptions) InvoiceData {
 	fake := faker.New()
 	vendorName := options.VendorName
 	if vendorName == "" {
@@ -187,7 +187,7 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 	includeCheckRail := includePaymentRails("check", options.PaymentMethods)
 
 	data := InvoiceData{
-		CompanyLogo: fmt.Sprintf("https://ui-avatars.com/api/?background=0D8ABC&color=fff&name=%s&rounded=true&size=64", strings.ReplaceAll(vendorName, " ", "+")),
+		CompanyLogo: fmt.Sprintf("https://ui-avatars.com/api/?background=0D8ABC&color=fff&name=%s&rounded=true&size=16", strings.ReplaceAll(vendorName, " ", "+")),
 		// convert from int to string
 		InvoiceNumber: strconv.Itoa(fake.RandomNumber(5)),
 		// Invoice date should be today's date
@@ -214,9 +214,7 @@ func generateData(options *GenerateInvoiceOptions) InvoiceData {
 	return data
 }
 
-func GenerateHtmlFile(options *GenerateInvoiceOptions) (*os.File, error) {
-	invoiceData := generateData(options)
-
+func GenerateInvoiceHtml(invoiceData *InvoiceData) (*os.File, error) {
 	templ, err := template.New(tmplFile).Funcs(template.FuncMap{
 		"nl2br": func(text string) template.HTML {
 			return template.HTML(strings.Replace(html.EscapeString(text), "\n", "<br>", -1))
