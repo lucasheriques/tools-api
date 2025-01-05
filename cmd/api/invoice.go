@@ -77,16 +77,14 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 		Currency:       currency,
 	})
 	if err != nil {
-		app.logger.Error(fmt.Sprintf("Failed to create index.html file: %v", err))
-		http.Error(w, fmt.Sprintf("Failed to create index.html file: %v", err), http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to create index.html file: %v", err))
 		return
 	}
 
 	app.logger.Info("Converting HTML to PDF v2...")
 	pdfContent, err := convert.HtmlToPdfV2(htmlContent)
 	if err != nil {
-		http.Error(w, "Failed to convert HTML to PDF", http.StatusInternalServerError)
-		app.logger.Error(fmt.Sprintf("Error converting HTML to PDF: %v", err))
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to convert HTML to PDF: %v", err))
 		return
 	}
 
@@ -94,8 +92,7 @@ func (app *application) createFakeInvoice(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(pdfContent)))
 	if _, err := io.Copy(w, bytes.NewReader(pdfContent)); err != nil {
-		app.logger.Error(fmt.Sprintf("Error sending PDF content to client: %v", err))
-		http.Error(w, "Failed to send PDF content to client", http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, fmt.Errorf("failed to send PDF content to client: %v", err))
 		return
 	}
 

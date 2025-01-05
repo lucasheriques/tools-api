@@ -33,11 +33,6 @@ func HtmlToPdfV2(htmlFile *os.File) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("gotenberg responded with status code %d: %s", resp.StatusCode, string(bodyBytes))
-	}
-
 	pdfContent, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
