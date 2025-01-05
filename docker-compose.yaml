@@ -8,6 +8,8 @@ services:
       - SERVICE_FQDN_API=/
     restart: unless-stopped
     platform: linux/amd64
+    ports:
+      - "4000:4000"
     labels:
       - traefik.enable=true
       - "traefik.http.routers.tools-api.rule=Host(`tools.lucasfaria.dev`)"
