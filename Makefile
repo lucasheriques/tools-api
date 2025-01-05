@@ -80,8 +80,12 @@ dev:
 	@echo 'Starting application with Docker Compose...'
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build --remove-orphans
 
-.PHONY: build/prod
-build/prod:
+.PHONY: build
+build:
+	@echo 'Building and pushing production image...'
+	docker login
+	docker build -t ${DOCKER_IMAGE_NAME}:latest --file ./deployments/Dockerfile-prod . --platform linux/amd64
+	docker push ${DOCKER_IMAGE_NAME}:latest
 	@echo 'Building production application with Docker Compose...'
 	docker compose -f docker-compose.yaml build
 
