@@ -29,4 +29,4 @@ COPY --from=builder /app/bin/api /root/api
 COPY --from=builder /app/invoice.tmpl /root/invoice.tmpl
 
 # Command to run the executable
-CMD ["./api"]
+CMD ["./api", "-env=production"]
