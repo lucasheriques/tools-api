@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: deployments/Dockerfile-prod
-    container_name: api-container
+    container_name: api
     environment:
       - CGO_ENABLED=0
       - GOOS=linux

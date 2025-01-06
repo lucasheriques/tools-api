@@ -16,5 +16,5 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/invoices/fake", app.createFakeInvoice)
 	router.HandlerFunc(http.MethodPost, "/v1/invoices", app.createInvoice)
 
-	return app.recoverPanic(router)
+	return app.recoverPanic(app.rateLimit(router))
 }
