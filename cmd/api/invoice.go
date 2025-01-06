@@ -109,7 +109,7 @@ func (app *application) createInvoice(w http.ResponseWriter, r *http.Request) {
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.logger.Error("failed to decode invoice data", "error", err.Error())
-		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
