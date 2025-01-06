@@ -10,4 +10,4 @@ require golang.org/x/text v0.15.0
 
 require github.com/dcaraxes/gotenberg-go-client/v8 v8.1.3
 
-require golang.org/x/time v0.9.0 // indirect
+require golang.org/x/time v0.9.0
