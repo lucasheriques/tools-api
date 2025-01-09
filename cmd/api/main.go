@@ -6,10 +6,12 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
 const version = "1.0.0"
+const corsTrustedOrigins = "http://localhost:3000 https://*.nagringa.dev https://*.lucasfaria.dev"
 
 type config struct {
 	port    int
@@ -18,6 +20,9 @@ type config struct {
 		rps     float64
 		burst   int
 		enabled bool
+	}
+	cors struct {
+		trustedOrigins []string
 	}
 }
 
@@ -36,6 +41,8 @@ func main() {
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.Parse()
 
+	cfg.cors.trustedOrigins = strings.Fields(corsTrustedOrigins)
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	app := &application{
@@ -52,7 +59,7 @@ func main() {
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
-	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
+	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env, "cors", cfg.cors.trustedOrigins)
 
 	err := srv.ListenAndServe()
 	logger.Error(err.Error())
