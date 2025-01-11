@@ -11,7 +11,7 @@ import (
 )
 
 const version = "1.0.0"
-const corsTrustedOrigins = "http://localhost:3000 https://*.nagringa.dev https://*.lucasfaria.dev"
+const corsTrustedOrigins = "http://localhost:3000 https://*.nagringa.dev https://*.lucasfaria.dev https://nagringa.dev https://www.nagringa.dev"
 
 type config struct {
 	port    int
